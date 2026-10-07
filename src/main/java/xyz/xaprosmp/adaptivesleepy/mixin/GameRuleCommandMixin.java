@@ -53,7 +53,7 @@ public abstract class GameRuleCommandMixin {
      * with base 30 must still save 50 as the base. Treat the request as unchanged only when it
      * also equals the base. Silent sources (functions/datapacks) keep vanilla's check.
      */
-    @WrapOperation(method = "setRule", at = @At(value = "INVOKE", target = "Ljava/lang/Object;equals(Ljava/lang/Object;)Z"))
+    @WrapOperation(method = "setRule", at = @At(value = "INVOKE", target = "Ljava/lang/Object;equals(Ljava/lang/Object;)Z"), allow = 1)
     private static boolean adaptivesleepy$compareWithBase(
         Object current, Object requested, Operation<Boolean> original, CommandContext<CommandSourceStack> context, GameRule<?> gameRule
     ) {

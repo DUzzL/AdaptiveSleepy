@@ -24,12 +24,17 @@ sources were lost. They were then cleaned and ported to 26.3 (2.3.0). Git histor
   - Writes made by the mod itself are flagged with `RequirementSync.applying`, so the
     command hook ignores them.
 - **The gamerule is reset to the base on SERVER_STOPPING**, so a raised value is never saved as
-  next start's base. Votes are memory-only and expire when the overworld clock enters a new day
-  (`clockTime / 24000` changes, which also happens when the night is skipped).
+  next start's base. Votes are memory-only and expire when the overworld day index
+  (`clockTime / 24000`) increases, which also happens when the night is skipped. Setting the
+  time backwards keeps them.
 - **The config file is generated.** `ConfigOptions.ALL` is the schema. `ConfigFile` rewrites the
   whole TOML from it, with all comments, whenever an option is missing, invalid or unknown,
-  and on every `/adaptivesleepy config … <value>`. To add an option, add it to `ConfigOptions`
-  and `SleepConfig` and nowhere else.
+  and on every `/adaptivesleepy config … <value>`. To add an option:
+  1. add the field and accessors in `SleepConfig`;
+  2. add the entry in `ConfigOptions`;
+  3. if changing the option at runtime must do something, add that to
+     `AdaptiveSleepyCommand.applySideEffects` (it matches on option ids);
+  4. add the option to the table in `README.md`.
 - All code runs on the server thread (commands, lifecycle events, END_LEVEL_TICK of the overworld).
 
 ## Layout
@@ -76,8 +81,9 @@ it wipes each time) and drives the console. In order, it checks:
 When it fails, it prints the step and the end of `run-smoke/logs/latest.log`. Run both gates
 after every change.
 
-Not covered automatically, because it needs a real player (a client on `localhost:25599`
-during `./gradlew runSmoke`, or `./gradlew runServer` with `run/`):
+Not covered automatically, because it needs a real player. Run `tools/smoke.sh` once (it writes
+`run-smoke/eula.txt` and `server.properties` with offline mode and port 25599), then
+`./gradlew runSmoke` and join with a client on `localhost:25599`:
 
 - `/veto sleep`, `/veto sleep cancel`, `/veto sleep list`, and expiry next morning;
 - the action-bar refresh while someone is in bed;
@@ -104,8 +110,9 @@ during `./gradlew runSmoke`, or `./gradlew runServer` with `run/`):
    Also read the release changelog for gameplay changes to sleeping, weather and gamerule
    commands. 26.3's only relevant change was `/gamerule` rejecting an unchanged value
    (MC-174958).
-3. Mixins use `"defaultRequire": 1`, so a moved target fails at server start with a clear
-   mixin error, not silently. `./gradlew build`, then `tools/smoke.sh`.
+3. Mixins use `"defaultRequire": 1`, and the `Object.equals` wrap also has `allow = 1`. A
+   missing target, or a second `equals` call in `setRule`, therefore fails at server start
+   with a mixin error instead of passing silently. `./gradlew build`, then `tools/smoke.sh`.
 
 ## Release and install
 
