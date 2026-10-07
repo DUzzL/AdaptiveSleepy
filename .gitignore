@@ -1,0 +1,16 @@
+# Build outputs
+.gradle/
+build/
+/out/
+
+# Loom run directories (runServer, runSmoke)
+/run/
+/run-smoke/
+
+# Released jars live next to the sources, not in git (see AGENTS.md)
+/release/
+
+# IDE
+/.idea/
+*.iml
+/.vscode/

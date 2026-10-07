@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "xyz.xaprosmp.adaptivesleepy.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"GameRuleCommandMixin",
+		"ServerLevelInvoker"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

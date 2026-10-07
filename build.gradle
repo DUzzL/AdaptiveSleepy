@@ -1,0 +1,61 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version '1.17-SNAPSHOT'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+    testImplementation "org.junit.jupiter:junit-jupiter:5.9.1"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+loom {
+    runs {
+        // Throwaway dedicated server for tools/smoke.sh (./gradlew runSmoke); the script wipes run-smoke/.
+        smoke {
+            server()
+            configName = "Smoke Server"
+            runDir "run-smoke"
+            ideConfigGenerated false
+        }
+    }
+}
+
+processResources {
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") {
+        expand "version": inputs.properties.version
+    }
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 25
+}
+
+test {
+    useJUnitPlatform()
+    // Minecraft's log4j config writes logs/ into the working directory: keep it under build/.
+    def testRunDir = layout.buildDirectory.dir("test-run")
+    workingDir = testRunDir
+    doFirst { testRunDir.get().asFile.mkdirs() }
+}
+
+jar {
+    inputs.property "archivesName", project.base.archivesName
+    from("LICENSE") {
+        rename { "${it}_${inputs.properties.archivesName}" }
+    }
+}
